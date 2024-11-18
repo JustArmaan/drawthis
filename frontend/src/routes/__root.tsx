@@ -12,7 +12,6 @@ export const Route = createRootRoute({
           <Outlet />
         </main>
       </SidebarProvider>
-
       <hr />
     </>
   ),
