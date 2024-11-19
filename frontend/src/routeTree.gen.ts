@@ -11,27 +11,27 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as ProfileImport } from './routes/profile'
-import { Route as UuidImport } from './routes/$uuid'
-import { Route as IndexImport } from './routes/index'
+import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedProfileImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedUuidImport } from './routes/_authenticated/$uuid'
 
 // Create/Update Routes
 
-const ProfileRoute = ProfileImport.update({
-  id: '/profile',
+const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
+  id: '/_authenticated/',
+  path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthenticatedProfileRoute = AuthenticatedProfileImport.update({
+  id: '/_authenticated/profile',
   path: '/profile',
   getParentRoute: () => rootRoute,
 } as any)
 
-const UuidRoute = UuidImport.update({
-  id: '/$uuid',
+const AuthenticatedUuidRoute = AuthenticatedUuidImport.update({
+  id: '/_authenticated/$uuid',
   path: '/$uuid',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const IndexRoute = IndexImport.update({
-  id: '/',
-  path: '/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,25 +39,25 @@ const IndexRoute = IndexImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/$uuid': {
-      id: '/$uuid'
+    '/_authenticated/$uuid': {
+      id: '/_authenticated/$uuid'
       path: '/$uuid'
       fullPath: '/$uuid'
-      preLoaderRoute: typeof UuidImport
+      preLoaderRoute: typeof AuthenticatedUuidImport
       parentRoute: typeof rootRoute
     }
-    '/profile': {
-      id: '/profile'
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
-      preLoaderRoute: typeof ProfileImport
+      preLoaderRoute: typeof AuthenticatedProfileImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -66,43 +66,47 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/$uuid': typeof UuidRoute
-  '/profile': typeof ProfileRoute
+  '/$uuid': typeof AuthenticatedUuidRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/$uuid': typeof UuidRoute
-  '/profile': typeof ProfileRoute
+  '/$uuid': typeof AuthenticatedUuidRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/$uuid': typeof UuidRoute
-  '/profile': typeof ProfileRoute
+  '/_authenticated/$uuid': typeof AuthenticatedUuidRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$uuid' | '/profile'
+  fullPaths: '/$uuid' | '/profile' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$uuid' | '/profile'
-  id: '__root__' | '/' | '/$uuid' | '/profile'
+  to: '/$uuid' | '/profile' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated/$uuid'
+    | '/_authenticated/profile'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  UuidRoute: typeof UuidRoute
-  ProfileRoute: typeof ProfileRoute
+  AuthenticatedUuidRoute: typeof AuthenticatedUuidRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  UuidRoute: UuidRoute,
-  ProfileRoute: ProfileRoute,
+  AuthenticatedUuidRoute: AuthenticatedUuidRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -115,19 +119,19 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/$uuid",
-        "/profile"
+        "/_authenticated/$uuid",
+        "/_authenticated/profile",
+        "/_authenticated/"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_authenticated/$uuid": {
+      "filePath": "_authenticated/$uuid.tsx"
     },
-    "/$uuid": {
-      "filePath": "$uuid.tsx"
+    "/_authenticated/profile": {
+      "filePath": "_authenticated/profile.tsx"
     },
-    "/profile": {
-      "filePath": "profile.tsx"
+    "/_authenticated/": {
+      "filePath": "_authenticated/index.tsx"
     }
   }
 }

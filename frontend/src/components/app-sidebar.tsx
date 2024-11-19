@@ -1,4 +1,4 @@
-import { QrCode } from "lucide-react"
+import { QrCode, User } from "lucide-react";
 
 import {
   Sidebar,
@@ -10,22 +10,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { allQrCodeQueryOptions } from "@/query";
 
-
 export function AppSidebar() {
+  // const { isPending, error, data } = useQuery(allQrCodeQueryOptions);
 
-  const { isPending, error, data } = useQuery(allQrCodeQueryOptions)
-
-  console.log(data)
-
-  if (isPending) return <div>Loading...</div>
-  if (error) return <div>Error: {error.message}</div>
-
+  // if (isPending) return <div>Loading...</div>;
+  // if (error) return <div>Error: {error.message}</div>;
 
   return (
     <Sidebar>
@@ -43,7 +38,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.qrCodes.map((item) => (
+              {/* {data.qrCodes.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton asChild>
                     <Link to={`/${item.id}`}>
@@ -52,11 +47,21 @@ export function AppSidebar() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              ))} */}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <div className="mt-auto p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Link to="/profile">
+              <User />
+              <span>Profile</span>
+            </Link>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </div>
     </Sidebar>
-  )
+  );
 }
