@@ -1,6 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Background, ReactFlowProvider, ReactFlow } from "@xyflow/react";
+import Toolbar from "@/components/toolbar";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: App,
@@ -8,10 +9,8 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function App() {
   return (
-    <div className="h-full w-full">
-      <ReactFlowProvider>
-        <Background />
-      </ReactFlowProvider>
+    <div className=" w-full">
+      <Toolbar />
     </div>
   );
 }
