@@ -19,6 +19,7 @@
     "@tanstack/react-query": "^5.60.2",
     "@tanstack/react-router": "^1.82.1",
     "@types/bun": "^1.1.13",
+    "@xyflow/react": "^12.3.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "hono": "4.6.9",
@@ -26,8 +27,10 @@
     "qr-code-styling": "^1.8.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-flow-renderer": "^10.3.17",
     "tailwind-merge": "^2.5.4",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

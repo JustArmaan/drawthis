@@ -8,9 +8,11 @@ interface MyRouterContext {
   queryClient: QueryClient;
 }
 
-export const Route = createRootRouteWithContext<MyRouterContext>()({ // will hit every route with context of MyRouterContext, will have access to that context in the route
+export const Route = createRootRouteWithContext<MyRouterContext>()({
+  // will hit every route with context of MyRouterContext, will have access to that context in the route
   component: () => (
     <>
+      {/* Sidebar and Layout */}
       <SidebarProvider>
         <AppSidebar />
         <main>

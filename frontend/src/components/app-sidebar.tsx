@@ -28,8 +28,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <Link to="/">
-              <QrCode />
-              <span>QR Codes</span>
+              <span>Home</span>
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>
