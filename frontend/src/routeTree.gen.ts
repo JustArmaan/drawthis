@@ -11,53 +11,38 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedProfileImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedNodePageImport } from './routes/_authenticated/nodePage'
-import { Route as AuthenticatedUuidImport } from './routes/_authenticated/$uuid'
 
 // Create/Update Routes
 
-const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
-  id: '/_authenticated/',
-  path: '/',
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 const AuthenticatedProfileRoute = AuthenticatedProfileImport.update({
-  id: '/_authenticated/profile',
+  id: '/profile',
   path: '/profile',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthenticatedNodePageRoute = AuthenticatedNodePageImport.update({
-  id: '/_authenticated/nodePage',
-  path: '/nodePage',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthenticatedUuidRoute = AuthenticatedUuidImport.update({
-  id: '/_authenticated/$uuid',
-  path: '/$uuid',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_authenticated/$uuid': {
-      id: '/_authenticated/$uuid'
-      path: '/$uuid'
-      fullPath: '/$uuid'
-      preLoaderRoute: typeof AuthenticatedUuidImport
-      parentRoute: typeof rootRoute
-    }
-    '/_authenticated/nodePage': {
-      id: '/_authenticated/nodePage'
-      path: '/nodePage'
-      fullPath: '/nodePage'
-      preLoaderRoute: typeof AuthenticatedNodePageImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
       parentRoute: typeof rootRoute
     }
     '/_authenticated/profile': {
@@ -65,68 +50,71 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof AuthenticatedImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
-  '/$uuid': typeof AuthenticatedUuidRoute
-  '/nodePage': typeof AuthenticatedNodePageRoute
+  '': typeof AuthenticatedRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/$uuid': typeof AuthenticatedUuidRoute
-  '/nodePage': typeof AuthenticatedNodePageRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/_authenticated/$uuid': typeof AuthenticatedUuidRoute
-  '/_authenticated/nodePage': typeof AuthenticatedNodePageRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/$uuid' | '/nodePage' | '/profile' | '/'
+  fullPaths: '' | '/profile' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$uuid' | '/nodePage' | '/profile' | '/'
+  to: '/profile' | '/'
   id:
     | '__root__'
-    | '/_authenticated/$uuid'
-    | '/_authenticated/nodePage'
+    | '/_authenticated'
     | '/_authenticated/profile'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  AuthenticatedUuidRoute: typeof AuthenticatedUuidRoute
-  AuthenticatedNodePageRoute: typeof AuthenticatedNodePageRoute
-  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedUuidRoute: AuthenticatedUuidRoute,
-  AuthenticatedNodePageRoute: AuthenticatedNodePageRoute,
-  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -139,23 +127,23 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/_authenticated/$uuid",
-        "/_authenticated/nodePage",
+        "/_authenticated"
+      ]
+    },
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx",
+      "children": [
         "/_authenticated/profile",
         "/_authenticated/"
       ]
     },
-    "/_authenticated/$uuid": {
-      "filePath": "_authenticated/$uuid.tsx"
-    },
-    "/_authenticated/nodePage": {
-      "filePath": "_authenticated/nodePage.tsx"
-    },
     "/_authenticated/profile": {
-      "filePath": "_authenticated/profile.tsx"
+      "filePath": "_authenticated/profile.tsx",
+      "parent": "/_authenticated"
     },
     "/_authenticated/": {
-      "filePath": "_authenticated/index.tsx"
+      "filePath": "_authenticated/index.tsx",
+      "parent": "/_authenticated"
     }
   }
 }

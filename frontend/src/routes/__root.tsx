@@ -1,5 +1,4 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import { DevTools } from "@/components/devtools";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext } from "@tanstack/react-router";
@@ -11,8 +10,11 @@ interface MyRouterContext {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-  // will hit every route with context of MyRouterContext, will have access to that context in the route
-  component: () => (
+  component: Root,
+});
+
+function Root() {
+  return (
     <>
       <SidebarProvider>
         <AppSidebar />
@@ -38,20 +40,5 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       </SidebarProvider>
       <hr />
     </>
-  ),
-});
-
-// export const Route = createRootRoute({
-//   component: () => (
-//     <>
-//       <SidebarProvider>
-//         <AppSidebar />
-//         <main>
-//           <SidebarTrigger />
-//           <Outlet />
-//         </main>
-//       </SidebarProvider>
-//       <hr />
-//     </>
-//   ),
-// })
+  );
+}
