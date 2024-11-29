@@ -1,5 +1,5 @@
 import Toolbar from '@/components/toolbar';
-import { DndContext, DragEndEvent, useDroppable } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable } from '@dnd-kit/core';
 import { createFileRoute } from '@tanstack/react-router';
 import { Background } from '@xyflow/react';
 import { useState } from 'react';
@@ -8,12 +8,48 @@ export const Route = createFileRoute('/_authenticated/')({
     component: Index,
 });
 
+function DraggableItem({
+    id,
+    x,
+    y,
+    onDragStart,
+}: {
+    id: string;
+    x: number;
+    y: number;
+    onDragStart: (id: string) => void;
+}) {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id,
+    });
+
+    const style = {
+        left: `${x}px`,
+        top: `${y}px`,
+        transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : 'translate(-50%, -50%)',
+        zIndex: isDragging ? 10 : 1,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            className="absolute bg-green-200 p-2 rounded-md cursor-move"
+            style={style}
+            {...listeners}
+            {...attributes}
+            onMouseDown={() => onDragStart(id)}
+        >
+            {id}
+        </div>
+    );
+}
+
 function DropZone({
     droppedItems,
-    onDropItem,
+    onDragStart,
 }: {
     droppedItems: Array<{ id: string; x: number; y: number }>;
-    onDropItem: (event: DragEndEvent) => void;
+    onDragStart: (id: string) => void;
 }) {
     const { setNodeRef, isOver } = useDroppable({
         id: 'drop-zone',
@@ -35,17 +71,7 @@ function DropZone({
         >
             <Background />
             {droppedItems.map((item) => (
-                <div
-                    key={item.id}
-                    className="absolute bg-green-200 p-2 rounded-md"
-                    style={{
-                        left: `${item.x}px`,
-                        top: `${item.y}px`,
-                        transform: 'translate(-50%, -50%)',
-                    }}
-                >
-                    {item.id}
-                </div>
+                <DraggableItem key={item.id} id={item.id} x={item.x} y={item.y} onDragStart={onDragStart} />
             ))}
         </div>
     );
@@ -53,32 +79,51 @@ function DropZone({
 
 function Index() {
     const [droppedItems, setDroppedItems] = useState<Array<{ id: string; x: number; y: number }>>([]);
+    const [activeId, setActiveId] = useState<string | null>(null);
+
+    function handleDragStart(event: DragStartEvent) {
+        setActiveId(event.active.id as string);
+    }
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
+        setActiveId(null);
 
-        // Check if dropped on the drop zone
         if (over && over.id === 'drop-zone') {
-            // Get the coordinates from the active item's rect
             const activeRect = active.rect.current.translated;
 
             if (activeRect) {
-                const newItem = {
-                    id: active.id as string,
-                    x: activeRect.left,
-                    y: activeRect.top,
-                };
+                const updatedItems = droppedItems.map((item) =>
+                    item.id === active.id
+                        ? {
+                              ...item,
+                              x: activeRect.left,
+                              y: activeRect.top,
+                          }
+                        : item
+                );
 
-                // Add the item to the list
-                setDroppedItems((currentItems) => [...currentItems, newItem]);
+                const isNewItem = !droppedItems.some((item) => item.id === active.id);
+                if (isNewItem) {
+                    updatedItems.push({
+                        id: active.id as string,
+                        x: activeRect.left,
+                        y: activeRect.top,
+                    });
+                }
+
+                setDroppedItems(updatedItems);
             }
         }
     }
 
     return (
-        <DndContext onDragEnd={handleDragEnd}>
+        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <Toolbar />
-            <DropZone droppedItems={droppedItems} onDropItem={handleDragEnd} />
+            <DropZone droppedItems={droppedItems} onDragStart={(id) => setActiveId(id)} />
+            <DragOverlay>
+                {activeId ? <div className="absolute bg-green-300 p-2 rounded-md cursor-move">{activeId}</div> : null}
+            </DragOverlay>
         </DndContext>
     );
 }
