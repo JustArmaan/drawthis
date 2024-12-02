@@ -3,17 +3,43 @@ import { CSS } from '@dnd-kit/utilities';
 
 export default function Toolbar() {
     const items = [
-        { id: 'item-1', label: 'Schema Blob 1' },
-        { id: 'item-2', label: 'Schema Blob 2' },
-        { id: 'item-3', label: 'Schema Blob 3' },
+        {
+            id: 'table-1',
+            label: 'Basic Table',
+            type: 'table',
+            columns: [
+                { name: 'id', type: 'int' },
+                { name: 'name', type: 'varchar' },
+            ],
+        },
+        {
+            id: 'table-2',
+            label: 'User Table',
+            type: 'table',
+            columns: [
+                { name: 'user_id', type: 'int' },
+                { name: 'username', type: 'varchar' },
+                { name: 'email', type: 'varchar' },
+            ],
+        },
+        {
+            id: 'table-3',
+            label: 'Product Table',
+            type: 'table',
+            columns: [
+                { name: 'product_id', type: 'int' },
+                { name: 'product_name', type: 'varchar' },
+                { name: 'price', type: 'decimal' },
+            ],
+        },
     ];
 
     return (
         <div
             className="fixed top-10 right-10 bg-gray-800 text-white p-4 rounded-md shadow-lg z-10"
-            style={{ width: '200px' }}
+            style={{ width: '250px' }}
         >
-            <h2 className="mb-4 text-lg font-semibold">Toolbar</h2>
+            <h2 className="mb-4 text-lg font-semibold">Schema Tables</h2>
             {items.map((item) => (
                 <DraggableItem key={item.id} id={item.id} label={item.label} />
             ))}

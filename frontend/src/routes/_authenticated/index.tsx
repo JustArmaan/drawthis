@@ -10,20 +10,33 @@ export const Route = createFileRoute('/_authenticated/')({
 
 const GRID_SIZE = 40; // Base grid size
 const GRID_COLOR = '#e0e0e0'; // Light gray grid color
-const MIN_BLOCK_WIDTH = 120; // Minimum block width
-const MIN_BLOCK_HEIGHT = 60; // Minimum block height
+const MIN_BLOCK_WIDTH = 200; // Increased minimum width for tables
+const MIN_BLOCK_HEIGHT = 150; // Increased minimum height for tables
 
-function DraggableItem({
+interface TableColumn {
+    name: string;
+    type: string;
+}
+
+interface SchemaTable {
+    id: string;
+    x: number;
+    y: number;
+    name: string;
+    columns: TableColumn[];
+}
+
+function TableItem({
     id,
     x,
     y,
-    content,
+    table,
     onDragStart,
 }: {
     id: string;
     x: number;
     y: number;
-    content?: string;
+    table: SchemaTable;
     onDragStart: (id: string) => void;
 }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -33,7 +46,7 @@ function DraggableItem({
     return (
         <div
             ref={setNodeRef}
-            className="absolute bg-green-200 p-4 rounded-md cursor-move flex items-center justify-center"
+            className="absolute bg-white border-2 border-gray-300 rounded-md shadow-lg"
             style={{
                 left: x,
                 top: y,
@@ -48,18 +61,28 @@ function DraggableItem({
             {...attributes}
             onMouseDown={() => onDragStart(id)}
         >
-            <span className="text-center break-words max-w-full">{content || id}</span>
+            <div className="bg-gray-100 p-2 font-bold text-center border-b">{table.name}</div>
+            <table className="w-full">
+                <thead>
+                    <tr className="bg-gray-50">
+                        <th className="p-2 text-left">Column Name</th>
+                        <th className="p-2 text-left">Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {table.columns.map((column, index) => (
+                        <tr key={index} className="border-t">
+                            <td className="p-2">{column.name}</td>
+                            <td className="p-2">{column.type}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }
 
-function DropZone({
-    droppedItems,
-    onDragStart,
-}: {
-    droppedItems: Array<{ id: string; x: number; y: number; content?: string }>;
-    onDragStart: (id: string) => void;
-}) {
+function DropZone({ droppedTables, onDragStart }: { droppedTables: SchemaTable[]; onDragStart: (id: string) => void }) {
     const { setNodeRef, isOver } = useDroppable({
         id: 'drop-zone',
     });
@@ -83,13 +106,13 @@ function DropZone({
                 zIndex: 0,
             }}
         >
-            {droppedItems.map((item) => (
-                <DraggableItem
-                    key={item.id}
-                    id={item.id}
-                    x={item.x}
-                    y={item.y}
-                    content={item.content}
+            {droppedTables.map((table) => (
+                <TableItem
+                    key={table.id}
+                    id={table.id}
+                    x={table.x}
+                    y={table.y}
+                    table={table}
                     onDragStart={onDragStart}
                 />
             ))}
@@ -98,14 +121,7 @@ function DropZone({
 }
 
 function Index() {
-    const [droppedItems, setDroppedItems] = useState<
-        Array<{
-            id: string;
-            x: number;
-            y: number;
-            content?: string;
-        }>
-    >([]);
+    const [droppedTables, setDroppedTables] = useState<SchemaTable[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
 
     function handleDragStart(event: DragStartEvent) {
@@ -123,27 +139,32 @@ function Index() {
                 const x = Math.round(activeRect.left / GRID_SIZE) * GRID_SIZE;
                 const y = Math.round(activeRect.top / GRID_SIZE) * GRID_SIZE;
 
-                const updatedItems = [...droppedItems];
-                const existingItemIndex = updatedItems.findIndex((item) => item.id === active.id);
+                // Check if this is a new table or moving an existing one
+                const existingTableIndex = droppedTables.findIndex((table) => table.id === active.id);
 
-                if (existingItemIndex !== -1) {
-                    // Update existing item
-                    updatedItems[existingItemIndex] = {
-                        ...updatedItems[existingItemIndex],
+                if (existingTableIndex !== -1) {
+                    // Update existing table position
+                    const updatedTables = [...droppedTables];
+                    updatedTables[existingTableIndex] = {
+                        ...updatedTables[existingTableIndex],
                         x,
                         y,
                     };
+                    setDroppedTables(updatedTables);
                 } else {
-                    // Add new item with dynamic content
-                    updatedItems.push({
+                    // Add new table
+                    const newTable: SchemaTable = {
                         id: uuidv4(),
+                        name: `Table ${droppedTables.length + 1}`,
                         x,
                         y,
-                        content: `Item ${updatedItems.length + 1}`,
-                    });
+                        columns: [
+                            { name: 'id', type: 'int' },
+                            { name: 'name', type: 'varchar' },
+                        ],
+                    };
+                    setDroppedTables([...droppedTables, newTable]);
                 }
-
-                setDroppedItems(updatedItems);
             }
         }
     }
@@ -151,19 +172,11 @@ function Index() {
     return (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <Toolbar />
-            <DropZone droppedItems={droppedItems} onDragStart={(id) => setActiveId(id)} />
+            <DropZone droppedTables={droppedTables} onDragStart={(id) => setActiveId(id)} />
             <DragOverlay>
                 {activeId ? (
-                    <div
-                        className="absolute bg-green-300 p-4 rounded-md cursor-move flex items-center justify-center"
-                        style={{
-                            minWidth: `${MIN_BLOCK_WIDTH}px`,
-                            minHeight: `${MIN_BLOCK_HEIGHT}px`,
-                            width: 'fit-content',
-                            height: 'fit-content',
-                        }}
-                    >
-                        {droppedItems.find((item) => item.id === activeId)?.content || activeId}
+                    <div className="bg-white border-2 border-gray-400 rounded-md shadow-xl">
+                        {droppedTables.find((table) => table.id === activeId)?.name || activeId}
                     </div>
                 ) : null}
             </DragOverlay>
