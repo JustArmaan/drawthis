@@ -8,10 +8,10 @@ export const Route = createFileRoute('/_authenticated/')({
     component: Index,
 });
 
-const GRID_SIZE = 40; // Base grid size
-const GRID_COLOR = '#e0e0e0'; // Light gray grid color
-const MIN_BLOCK_WIDTH = 200; // Increased minimum width for tables
-const MIN_BLOCK_HEIGHT = 150; // Increased minimum height for tables
+const GRID_SIZE = 40;
+const GRID_COLOR = '#e0e0e0';
+const MIN_BLOCK_WIDTH = 200;
+const MIN_BLOCK_HEIGHT = 150;
 
 interface TableColumn {
     name: string;
