@@ -18,7 +18,7 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@shadcn/ui": "^0.0.4",
     "@tanstack/react-query": "^5.60.2",
-    "@tanstack/react-router": "^1.82.1",
+    "@tanstack/react-router": "^1.85.5",
     "@types/bun": "^1.1.13",
     "@xyflow/react": "^12.3.5",
     "antd": "^5.22.2",
@@ -29,9 +29,11 @@
     "qr-code-styling": "^1.8.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "reactflow": "^11.11.4",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.0.3",
+    "zod": "^3.23.8",
     "zustand": "^5.0.1"
   },
   "devDependencies": {

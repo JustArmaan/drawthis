@@ -1,187 +1,247 @@
-import Toolbar from '@/components/toolbar';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDraggable, useDroppable } from '@dnd-kit/core';
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useCallback } from "react";
+import ReactFlow, {
+  ReactFlowProvider,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  Controls,
+  Background,
+  Connection,
+  Edge,
+  NodeTypes,
+  EdgeTypes,
+} from "reactflow";
+import "reactflow/dist/style.css";
+import { v4 as uuidv4 } from "uuid";
+import { TableNodeData } from "@/types/schema-types";
+import { EdgeProps } from "@xyflow/react";
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/_authenticated/')({
-    component: Index,
+export const Route = createFileRoute("/_authenticated/")({
+  component: Index,
 });
 
-const GRID_SIZE = 40;
-const GRID_COLOR = '#e0e0e0';
-const MIN_BLOCK_WIDTH = 200;
-const MIN_BLOCK_HEIGHT = 150;
-
-interface TableColumn {
-    name: string;
-    type: string;
+function TableNode({ data }: { data: TableNodeData }) {
+  return (
+    <div className="bg-white border-2 border-gray-300 rounded-md shadow-lg">
+      <div className="bg-gray-100 p-2 font-bold text-center border-b">
+        {data.label}
+      </div>
+      <table className="w-full">
+        <thead>
+          <tr className="bg-gray-50">
+            <th className="p-2 text-left">Column Name</th>
+            <th className="p-2 text-left">Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.columns.map((column, index) => (
+            <tr key={index} className="border-t">
+              <td className="p-2">{column.name}</td>
+              <td className="p-2">{column.type}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
-interface SchemaTable {
-    id: string;
-    x: number;
-    y: number;
-    name: string;
-    columns: TableColumn[];
+function OneToOneEdge(props: EdgeProps) {
+  return (
+    <path
+      {...props}
+      markerEnd="url(#oneToOneMarker)"
+      stroke="blue"
+      strokeDasharray="5,5"
+    />
+  );
 }
 
-function TableItem({
-    id,
-    x,
-    y,
-    table,
-    onDragStart,
-}: {
-    id: string;
-    x: number;
-    y: number;
-    table: SchemaTable;
-    onDragStart: (id: string) => void;
-}) {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id,
-    });
-
-    return (
-        <div
-            ref={setNodeRef}
-            className="absolute bg-white border-2 border-gray-300 rounded-md shadow-lg"
-            style={{
-                left: x,
-                top: y,
-                transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : 'none',
-                zIndex: isDragging ? 10 : 1,
-                minWidth: `${MIN_BLOCK_WIDTH}px`,
-                minHeight: `${MIN_BLOCK_HEIGHT}px`,
-                width: 'fit-content',
-                height: 'fit-content',
-            }}
-            {...listeners}
-            {...attributes}
-            onMouseDown={() => onDragStart(id)}
-        >
-            <div className="bg-gray-100 p-2 font-bold text-center border-b">{table.name}</div>
-            <table className="w-full">
-                <thead>
-                    <tr className="bg-gray-50">
-                        <th className="p-2 text-left">Column Name</th>
-                        <th className="p-2 text-left">Type</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {table.columns.map((column, index) => (
-                        <tr key={index} className="border-t">
-                            <td className="p-2">{column.name}</td>
-                            <td className="p-2">{column.type}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+function OneToManyEdge(props: EdgeProps) {
+  return (
+    <path
+      {...props}
+      markerEnd="url(#oneToManyMarker)"
+      stroke="green"
+      strokeDasharray="3,3"
+    />
+  );
 }
 
-function DropZone({ droppedTables, onDragStart }: { droppedTables: SchemaTable[]; onDragStart: (id: string) => void }) {
-    const { setNodeRef, isOver } = useDroppable({
-        id: 'drop-zone',
-    });
-
-    return (
-        <div
-            ref={setNodeRef}
-            style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                minHeight: '100vh',
-                backgroundImage: `
-                    linear-gradient(to right, ${GRID_COLOR} 1px, transparent 1px),
-                    linear-gradient(to bottom, ${GRID_COLOR} 1px, transparent 1px)
-                `,
-                backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
-                backgroundColor: isOver ? 'rgba(0,255,0,0.1)' : 'transparent',
-                zIndex: 0,
-            }}
-        >
-            {droppedTables.map((table) => (
-                <TableItem
-                    key={table.id}
-                    id={table.id}
-                    x={table.x}
-                    y={table.y}
-                    table={table}
-                    onDragStart={onDragStart}
-                />
-            ))}
-        </div>
-    );
+function ManyToManyEdge(props: EdgeProps) {
+  return (
+    <path
+      {...props}
+      markerEnd="url(#manyToManyMarker)"
+      stroke="red"
+      strokeDasharray="2,2"
+    />
+  );
 }
 
 function Index() {
-    const [droppedTables, setDroppedTables] = useState<SchemaTable[]>([]);
-    const [activeId, setActiveId] = useState<string | null>(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-    function handleDragStart(event: DragStartEvent) {
-        setActiveId(event.active.id as string);
-    }
+  const nodeTypes: NodeTypes = {
+    table: TableNode,
+  };
 
-    function handleDragEnd(event: DragEndEvent) {
-        const { active, over } = event;
-        setActiveId(null);
+  const edgeTypes: EdgeTypes = {
+    oneToOne: OneToOneEdge,
+    oneToMany: OneToManyEdge,
+    manyToMany: ManyToManyEdge,
+  };
 
-        if (over && over.id === 'drop-zone') {
-            const activeRect = active.rect.current.translated;
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      const newEdge: Edge = {
+        id: `edge-${uuidv4()}`,
+        type: "oneToOne",
+        source: connection.source || "",
+        target: connection.target || "",
+        sourceHandle: connection.sourceHandle ?? null,
+        targetHandle: connection.targetHandle ?? null,
+      };
 
-            if (activeRect) {
-                const x = Math.round(activeRect.left / GRID_SIZE) * GRID_SIZE;
-                const y = Math.round(activeRect.top / GRID_SIZE) * GRID_SIZE;
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
+    [setEdges]
+  );
 
-                // Check if this is a new table or moving an existing one
-                const existingTableIndex = droppedTables.findIndex((table) => table.id === active.id);
+  const handleAddTable = (tableData: TableNodeData) => {
+    const newNode = {
+      id: `node-${uuidv4()}`,
+      type: "table",
+      position: {
+        x: Math.random() * window.innerWidth * 0.7,
+        y: Math.random() * window.innerHeight * 0.7,
+      },
+      data: tableData,
+    };
+    setNodes((nds) => [...nds, newNode]);
+  };
 
-                if (existingTableIndex !== -1) {
-                    // Update existing table position
-                    const updatedTables = [...droppedTables];
-                    updatedTables[existingTableIndex] = {
-                        ...updatedTables[existingTableIndex],
-                        x,
-                        y,
-                    };
-                    setDroppedTables(updatedTables);
-                } else {
-                    // Add new table
-                    const newTable: SchemaTable = {
-                        id: uuidv4(),
-                        name: `Table ${droppedTables.length + 1}`,
-                        x,
-                        y,
-                        columns: [
-                            { name: 'id', type: 'int' },
-                            { name: 'name', type: 'varchar' },
-                        ],
-                    };
-                    setDroppedTables([...droppedTables, newTable]);
-                }
-            }
-        }
-    }
+  const handleSaveSchema = () => {
+    const schemaJSON = {
+      nodes: nodes.map((node) => ({
+        id: node.id,
+        label: node.data.label,
+        columns: node.data.columns,
+        position: node.position,
+      })),
+      relationships: edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        type: edge.type,
+      })),
+    };
 
-    return (
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <Toolbar />
-            <DropZone droppedTables={droppedTables} onDragStart={(id) => setActiveId(id)} />
-            <DragOverlay>
-                {activeId ? (
-                    <div className="bg-white border-2 border-gray-400 rounded-md shadow-xl">
-                        {droppedTables.find((table) => table.id === activeId)?.name || activeId}
-                    </div>
-                ) : null}
-            </DragOverlay>
-        </DndContext>
-    );
+    console.log(JSON.stringify(schemaJSON, null, 2));
+  };
+
+  const predefinedTables = [
+    {
+      label: "Users",
+      columns: [
+        { name: "id", type: "int" },
+        { name: "username", type: "varchar" },
+        { name: "email", type: "varchar" },
+      ],
+    },
+    {
+      label: "Products",
+      columns: [
+        { name: "id", type: "int" },
+        { name: "name", type: "varchar" },
+        { name: "price", type: "decimal" },
+      ],
+    },
+    {
+      label: "Orders",
+      columns: [
+        { name: "id", type: "int" },
+        { name: "user_id", type: "int" },
+        { name: "total", type: "decimal" },
+      ],
+    },
+  ];
+
+  return (
+    <div className="h-screen">
+      <div className="fixed top-4 right-4 z-10 bg-white p-4 rounded shadow">
+        <h3 className="font-bold mb-2">Add Table</h3>
+        {predefinedTables.map((table, index) => (
+          <button
+            key={index}
+            onClick={() => handleAddTable(table)}
+            className="block w-full p-2 mb-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            {table.label}
+          </button>
+        ))}
+        <button
+          onClick={handleSaveSchema}
+          className="mt-4 w-full p-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          Save Schema
+        </button>
+      </div>
+
+      <ReactFlowProvider>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          fitView
+        >
+          <Controls />
+          <Background />
+          <svg>
+            <defs>
+              <marker
+                id="oneToOneMarker"
+                viewBox="0 0 10 10"
+                refX="5"
+                refY="5"
+                markerWidth="5"
+                markerHeight="5"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="blue" />
+              </marker>
+              <marker
+                id="oneToManyMarker"
+                viewBox="0 0 10 10"
+                refX="5"
+                refY="5"
+                markerWidth="5"
+                markerHeight="5"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="green" />
+              </marker>
+              <marker
+                id="manyToManyMarker"
+                viewBox="0 0 10 10"
+                refX="5"
+                refY="5"
+                markerWidth="5"
+                markerHeight="5"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="red" />
+              </marker>
+            </defs>
+          </svg>
+        </ReactFlow>
+      </ReactFlowProvider>
+    </div>
+  );
 }
-
-export default Index;
