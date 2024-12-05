@@ -1,44 +1,13 @@
-export interface TableColumn {
+export interface ColumnData {
   name: string;
   type: string;
+  primaryKey?: boolean;
+  unique?: boolean;
+  defaultValue?: string;
 }
 
 export interface TableNodeData {
+  id: string;
   label: string;
-  columns: TableColumn[];
+  columns: ColumnData[];
 }
-
-export type RelationshipType = "oneToOne" | "oneToMany" | "manyToMany";
-
-export interface SchemaExport {
-  nodes: {
-    id: string;
-    label: string;
-    columns: TableColumn[];
-    position: {
-      x: number;
-      y: number;
-    };
-  }[];
-  relationships: {
-    id: string;
-    source: string;
-    target: string;
-    type: RelationshipType;
-  }[];
-}
-
-export interface NodeSchema {
-  id?: number;
-  projectId?: number;
-  name: string;
-  type: string;
-  position: {
-    x: number;
-    y: number;
-  };
-  data: {
-    columns: TableColumn[];
-  };
-}
-

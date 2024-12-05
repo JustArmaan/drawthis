@@ -1,72 +1,119 @@
-import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
+import React, { useState } from "react";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+import { TableNodeData } from "@/types/schema-types";
 
-export default function Toolbar() {
-    const items = [
-        {
-            id: 'table-1',
-            label: 'Basic Table',
-            type: 'table',
-            columns: [
-                { name: 'id', type: 'int' },
-                { name: 'name', type: 'varchar' },
-            ],
-        },
-        {
-            id: 'table-2',
-            label: 'User Table',
-            type: 'table',
-            columns: [
-                { name: 'user_id', type: 'int' },
-                { name: 'username', type: 'varchar' },
-                { name: 'email', type: 'varchar' },
-            ],
-        },
-        {
-            id: 'table-3',
-            label: 'Product Table',
-            type: 'table',
-            columns: [
-                { name: 'product_id', type: 'int' },
-                { name: 'product_name', type: 'varchar' },
-                { name: 'price', type: 'decimal' },
-            ],
-        },
-    ];
+const DEFAULT_TABLES: TableNodeData[] = [
+  {
+    id: "table-1",
+    label: "Basic Table",
+    columns: [
+      { name: "id", type: "INT", primaryKey: true },
+      { name: "name", type: "VARCHAR(255)" },
+    ],
+  },
+  {
+    id: "table-2",
+    label: "User Table",
+    columns: [
+      { name: "user_id", type: "INT", primaryKey: true },
+      { name: "username", type: "VARCHAR(50)", unique: true },
+      { name: "email", type: "VARCHAR(100)", unique: true },
+      {
+        name: "created_at",
+        type: "TIMESTAMP",
+        defaultValue: "CURRENT_TIMESTAMP",
+      },
+    ],
+  },
+  {
+    id: "table-3",
+    label: "Product Table",
+    columns: [
+      { name: "product_id", type: "INT", primaryKey: true },
+      { name: "product_name", type: "VARCHAR(100)" },
+      { name: "price", type: "DECIMAL(10,2)" },
+      { name: "stock", type: "INT" },
+    ],
+  },
+];
 
-    return (
-        <div
-            className="fixed top-10 right-10 bg-gray-800 text-white p-4 rounded-md shadow-lg z-10"
-            style={{ width: '250px' }}
-        >
-            <h2 className="mb-4 text-lg font-semibold">Schema Tables</h2>
-            {items.map((item) => (
-                <DraggableItem key={item.id} id={item.id} label={item.label} />
-            ))}
-        </div>
-    );
-}
-
-function DraggableItem({ id, label }: { id: string; label: string }) {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id,
+function DraggableItem({ table }: { table: TableNodeData }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: table.id,
+      data: table,
     });
 
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.5 : 1,
-        cursor: isDragging ? 'grabbing' : 'pointer',
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+    cursor: isDragging ? "grabbing" : "grab",
+  };
+
+  return (
+    <div
+      className="p-2 bg-blue-500 text-white rounded-md cursor-pointer mb-2 hover:bg-blue-600 transition"
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+    >
+      {table.label}
+    </div>
+  );
+}
+
+export default function Toolbar({
+  onAddTable,
+}: {
+  onAddTable: (table: TableNodeData) => void;
+}) {
+  const [tables, setTables] = useState<TableNodeData[]>(DEFAULT_TABLES);
+  const [newTableName, setNewTableName] = useState("");
+
+  const handleCreateCustomTable = () => {
+    if (!newTableName.trim()) return;
+
+    const newTable: TableNodeData = {
+      id: `table-${Date.now()}`,
+      label: newTableName,
+      columns: [{ name: "id", type: "INT", primaryKey: true }],
     };
 
-    return (
-        <div
-            className="p-2 bg-blue-500 rounded-md cursor-pointer text-center mb-4"
-            ref={setNodeRef}
-            style={style}
-            {...listeners}
-            {...attributes}
-        >
-            {label}
+    setTables([...tables, newTable]);
+    setNewTableName("");
+  };
+
+  return (
+    <div className="fixed top-10 right-10 bg-gray-800 text-white p-4 rounded-md shadow-lg z-10 w-64">
+      <h2 className="mb-4 text-lg font-semibold">Schema Tables</h2>
+
+      <div className="mb-4">
+        <h3 className="text-md font-medium mb-2">Templates</h3>
+        {tables.map((table) => (
+          <DraggableItem key={table.id} table={table} />
+        ))}
+      </div>
+
+      <div className="mt-4">
+        <h3 className="text-md font-medium mb-2">Create Custom Table</h3>
+        <div className="flex">
+          <input
+            type="text"
+            value={newTableName}
+            onChange={(e) => setNewTableName(e.target.value)}
+            placeholder="Table Name"
+            className="w-full p-2 rounded-l-md text-black"
+          />
+          <button
+            onClick={handleCreateCustomTable}
+            className="bg-green-500 p-2 rounded-r-md hover:bg-green-600"
+          >
+            Add
+          </button>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
