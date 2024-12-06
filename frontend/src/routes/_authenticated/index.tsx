@@ -16,38 +16,11 @@ import { v4 as uuidv4 } from "uuid";
 import Toolbar from "@/components/toolbar";
 import { TableNodeData } from "@/types/schema-types";
 import { createFileRoute } from "@tanstack/react-router";
+import TableNode from "@/components/tableNode";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Index,
 });
-
-function TableNode({ data }: { data: TableNodeData }) {
-  return (
-    <>
-      <div className="bg-white border-2 border-gray-300 rounded-md shadow-lg cursor-pointer w-64">
-        <div className="bg-gray-100 p-2 font-bold text-center border-b">
-          {data.label}
-        </div>
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="p-2 text-left">Column Name</th>
-              <th className="p-2 text-left">Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.columns.map((column, index) => (
-              <tr key={index} className="border-t">
-                <td className="p-2">{column.name}</td>
-                <td className="p-2">{column.type}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </>
-  );
-}
 
 function Index() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

@@ -69,7 +69,7 @@ export default function Toolbar({
 }: {
   onAddTable: (table: TableNodeData) => void;
 }) {
-  const [tables, setTables] = useState<TableNodeData[]>(DEFAULT_TABLES);
+  const [tables, setTables] = useState(DEFAULT_TABLES);
   const [newTableName, setNewTableName] = useState("");
 
   const handleCreateCustomTable = () => {
@@ -82,6 +82,7 @@ export default function Toolbar({
     };
 
     setTables([...tables, newTable]);
+    onAddTable(newTable);
     setNewTableName("");
   };
 
