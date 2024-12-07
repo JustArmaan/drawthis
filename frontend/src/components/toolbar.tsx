@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { TableNodeData } from "@/types/schema-types";
+import { TableNodeData, ColumnData } from "@/types/schema-types";
+import { CreateTableDialog } from "./customNode";
 
 const DEFAULT_TABLES: TableNodeData[] = [
   {
@@ -70,24 +71,14 @@ export default function Toolbar({
   onAddTable: (table: TableNodeData) => void;
 }) {
   const [tables, setTables] = useState(DEFAULT_TABLES);
-  const [newTableName, setNewTableName] = useState("");
 
-  const handleCreateCustomTable = () => {
-    if (!newTableName.trim()) return;
-
-    const newTable: TableNodeData = {
-      id: `table-${Date.now()}`,
-      label: newTableName,
-      columns: [{ name: "id", type: "INT", primaryKey: true }],
-    };
-
+  const handleAddNewTable = (newTable: TableNodeData) => {
     setTables([...tables, newTable]);
     onAddTable(newTable);
-    setNewTableName("");
   };
 
   return (
-    <div className="fixed top-10 right-10 bg-gray-800 text-white p-4 rounded-md shadow-lg z-10 w-64">
+    <div className="fixed top-10 right-10 bg-gray-800 text-white p-4 rounded-md shadow-lg z-10">
       <h2 className="mb-4 text-lg font-semibold">Schema Tables</h2>
 
       <div className="mb-4">
@@ -98,22 +89,7 @@ export default function Toolbar({
       </div>
 
       <div className="mt-4">
-        <h3 className="text-md font-medium mb-2">Create Custom Table</h3>
-        <div className="flex">
-          <input
-            type="text"
-            value={newTableName}
-            onChange={(e) => setNewTableName(e.target.value)}
-            placeholder="Table Name"
-            className="w-full p-2 rounded-l-md text-black"
-          />
-          <button
-            onClick={handleCreateCustomTable}
-            className="bg-green-500 p-2 rounded-r-md hover:bg-green-600"
-          >
-            Add
-          </button>
-        </div>
+        <CreateTableDialog onAddTable={handleAddNewTable} />
       </div>
     </div>
   );

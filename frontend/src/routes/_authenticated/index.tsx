@@ -47,7 +47,7 @@ function Index() {
     [setEdges, selectedEdgeType]
   );
 
-  const handleAddTable = (tableData: TableNodeData) => {
+  const handleAddTable = (tableData: TableNodeData) => { // Doing nothing, just left it cause might be useful later
     const newNode = {
       id: `node-${uuidv4()}`,
       type: "table",
@@ -60,7 +60,6 @@ function Index() {
     setNodes((nds) => [...nds, newNode]);
   };
 
- 
   return (
     <div className="h-screen">
       <DndContext
@@ -87,10 +86,10 @@ function Index() {
           <ReactFlow
             nodes={nodes}
             edges={edges}
+            nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            nodeTypes={nodeTypes}
             fitView
           >
             <Controls />
