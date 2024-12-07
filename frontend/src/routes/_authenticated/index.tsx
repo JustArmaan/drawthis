@@ -60,24 +60,7 @@ function Index() {
     setNodes((nds) => [...nds, newNode]);
   };
 
-  const handleSaveSchema = () => {
-    // might use
-    const schemaJSON = {
-      nodes: nodes.map((node) => ({
-        id: node.id,
-        label: node.data.label,
-        columns: node.data.columns,
-        position: node.position,
-      })),
-      relationships: edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        type: edge.type,
-      })),
-    };
-  };
-
+ 
   return (
     <div className="h-screen">
       <DndContext
