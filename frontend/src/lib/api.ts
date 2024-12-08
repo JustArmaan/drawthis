@@ -41,7 +41,8 @@ export const schemaQueries = {
         if (!res.ok) {
           throw new Error("Failed to fetch schemas");
         }
-        return res.json();
+        const data = await res.json();
+        return data.schemas;
       } catch (error) {
         console.error("Error fetching schemas:", error);
         throw error;
@@ -52,7 +53,12 @@ export const schemaQueries = {
   create: () => ({
     mutationFn: async (data: Schema) => {
       try {
-        const res = await client.api.schemas.$post({ json: data });
+        const userId = (await getCurrentUser()).user.id;
+        if (!userId) {
+          throw new Error("User is not authenticated");
+        }
+        const schemaWithUserId = { ...data, userId };
+        const res = await client.api.schemas.$post({ json: schemaWithUserId });
         if (!res.ok) {
           throw new Error("Failed to create schema");
         }

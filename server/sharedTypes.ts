@@ -8,8 +8,8 @@ export const ColumnSchema = z.object({
 });
 
 export const PositionSchema = z.object({
-  x: z.number(),
-  y: z.number(),
+  x: z.number().min(0, "X cant be negative"),
+  y: z.number().min(0, "Y cant be negative"),
 });
 
 export const SchemaCreateSchema = z.object({
@@ -31,7 +31,7 @@ export type TableCreate = z.infer<typeof TableCreateSchema>;
 export interface Schema {
   id: number;
   name: string;
-  userId: string;
+  userId?: string;
   createdAt: Date;
 }
 
