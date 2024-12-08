@@ -1,66 +1,50 @@
-// import { Hono } from "hono";
-// import { zValidator } from "@hono/zod-validator";
-// import { getUser } from "../kinde";
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { getUser } from "../kinde";
+import { db } from "../db";
+import {
+  schemas as schemaTable,
+  tables as tableTable,
+  insertSchemaSchema,
+  insertTableSchema,
+} from "../db/schema/tables";
+import { eq, desc, and, sql } from "drizzle-orm";
 
-// let nodesDb: Node[] = [];
+export const schemasRoute = new Hono()
+  .get("/", getUser, async (c) => {
+    const user = c.var.user;
+    const schemas = await db
+      .select({
+        id: schemaTable.id,
+        name: schemaTable.name,
+        createdAt: schemaTable.createdAt,
+        tablesCount: sql`(
+          SELECT count(*)
+          FROM ${tableTable}
+          WHERE ${eq(tableTable.schemaId, schemaTable.id)}
+        )`.as("tablesCount"),
+      })
+      .from(schemaTable)
+      .where(eq(schemaTable.userId, user.id))
+      .orderBy(desc(schemaTable.createdAt));
 
-// interface Node {
-//   id: string;
-//   userId: string;
-//   name: string;
-//   type: string;
-//   position: { x: number; y: number };
-//   data: any;
-// }
+    return c.json({ schemas });
+  })
+  .post("/", getUser, zValidator("json", insertSchemaSchema), async (c) => {
+    const user = c.var.user;
+    const schemaData = await c.req.valid("json");
 
-// interface CreateNodeRequest {
-//   name: string;
-//   type: string;
-//   position: { x: number; y: number };
-//   data: any;
-// }
+    const validatedSchema = insertSchemaSchema.parse({
+      ...schemaData,
+      userId: user.id,
+    });
 
-// const createNodeSchema = {
-//   name: "string",
-//   type: "string",
-//   position: {
-//     x: "number",
-//     y: "number",
-//   },
-//   data: "object",
-// };
+    const result = await db
+      .insert(schemaTable)
+      .values(validatedSchema)
+      .returning()
+      .then((res) => res[0]);
 
-// export const nodesRoute = new Hono()
-//   .get("/", getUser, async (c) => {
-//     const user = c.var.user;
-
-//     const nodes = nodesDb.filter((node) => node.userId === user.id);
-
-//     return c.json({ nodes });
-//   })
-//     .post(
-//         "/",
-//         getUser,
-//         zValidator("json", createNodeSchema),
-//         async (c) => {
-//         const user = c.var.user;
-//         const { name, type, position, data } = c.req.valid("json") as CreateNodeRequest;
-
-//         const node = {
-//             id: uuidv4(),
-//             userId: user.id,
-//             name,
-//             type,
-//             position,
-//             data,
-//         };
-
-//         nodesDb.push(node);
-
-//         return c.json({ node }, 201);
-//         }
-//     )
-
-// function uuidv4() {
-//     throw new Error("Function not implemented.");
-// }
+    c.status(201);
+    return c.json(result);
+  });
