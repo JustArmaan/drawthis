@@ -10,11 +10,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { schemaQueries, userQueryOptions } from "@/lib/api";
-import type { Schema } from "@server/sharedTypes";
+import { schemaQueries, tableQueries, userQueryOptions } from "@/lib/api";
+import { Table } from "@server/sharedTypes";
 
 export function AppSidebar() {
-  // const { isPending, error, data } = useQuery(allQrCodeQueryOptions);
   const { data: schemas, isLoading, error } = useQuery(schemaQueries.all());
   const { isPending, data } = useQuery(userQueryOptions);
 
@@ -67,14 +66,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
-/* {data.qrCodes.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton asChild>
-                    <Link to={`/${item.id}`}>
-                      <QrCode />
-                      <span>{item.url}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))} */

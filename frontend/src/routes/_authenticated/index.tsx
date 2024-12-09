@@ -22,14 +22,13 @@ export const Route = createFileRoute("/_authenticated/")({
   component: Index,
 });
 
+const nodeTypes: NodeTypes = {
+  table: TableNode,
+};
 function Index() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedEdgeType] = useState();
-
-  const nodeTypes: NodeTypes = {
-    table: TableNode,
-  };
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -47,7 +46,7 @@ function Index() {
     [setEdges, selectedEdgeType]
   );
 
-  const handleAddTable = (tableData: TableNodeData) => { // Doing nothing, just left it cause might be useful later
+  const handleAddTable = (tableData: TableNodeData) => {
     const newNode = {
       id: `node-${uuidv4()}`,
       type: "table",
@@ -59,6 +58,41 @@ function Index() {
     };
     setNodes((nds) => [...nds, newNode]);
   };
+
+
+  const save = async () => {
+    const dataToSave = {
+      nodes: nodes.map((node) => ({
+        id: node.id,
+        type: node.type,
+        position: node.position,
+        data: node.data,
+      })),
+      edges: edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+      })),
+    };
+
+    try {
+      const response = await fetch("/api/saveSchema", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSave),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save schema");
+      }
+      console.log("Schema saved successfully!");
+    } catch (error) {
+      console.error("Error saving schema:", error);
+    }
+  };
+
 
   return (
     <div className="h-screen">
@@ -97,6 +131,13 @@ function Index() {
           </ReactFlow>
         </ReactFlowProvider>
       </DndContext>
+
+      <button
+        onClick={save}
+        className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded-md shadow-md"
+      >
+        Save
+      </button>
     </div>
   );
 }
