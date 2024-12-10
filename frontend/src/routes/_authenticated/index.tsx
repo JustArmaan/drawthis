@@ -10,6 +10,7 @@ import ReactFlow, {
   Connection,
   Edge,
   NodeTypes,
+  EdgeTypes,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
@@ -17,6 +18,7 @@ import Toolbar from "@/components/toolbar";
 import { TableNodeData } from "@/types/schema-types";
 import { createFileRoute } from "@tanstack/react-router";
 import TableNode from "@/components/tableNode";
+import CustomEdge from "@/components/customEdge";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Index,
@@ -25,10 +27,15 @@ export const Route = createFileRoute("/_authenticated/")({
 const nodeTypes: NodeTypes = {
   table: TableNode,
 };
+
+const edgeTypes: EdgeTypes = {
+  custom: CustomEdge,
+};
+
 function Index() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [selectedEdgeType] = useState();
+  const [selectedEdgeType] = useState("custom");
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -40,7 +47,6 @@ function Index() {
         sourceHandle: connection.sourceHandle ?? null,
         targetHandle: connection.targetHandle ?? null,
       };
-
       setEdges((eds) => addEdge(newEdge, eds));
     },
     [setEdges, selectedEdgeType]
@@ -48,7 +54,7 @@ function Index() {
 
   const handleAddTable = (tableData: TableNodeData) => {
     const newNode = {
-      id: `node-${uuidv4()}`,
+      id: `${uuidv4()}`,
       type: "table",
       position: {
         x: Math.random() * window.innerWidth * 0.7,
@@ -58,7 +64,6 @@ function Index() {
     };
     setNodes((nds) => [...nds, newNode]);
   };
-
 
   const save = async () => {
     const dataToSave = {
@@ -93,7 +98,6 @@ function Index() {
     }
   };
 
-
   return (
     <div className="h-screen">
       <DndContext
@@ -103,7 +107,7 @@ function Index() {
 
           if (tableData) {
             const newNode = {
-              id: `node-${uuidv4()}`,
+              id: `${uuidv4()}`,
               type: "table",
               position: {
                 x: event.delta.x || Math.random() * window.innerWidth * 0.7,
@@ -121,6 +125,7 @@ function Index() {
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}

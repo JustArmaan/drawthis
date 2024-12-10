@@ -1,10 +1,14 @@
 import React from "react";
 import { NodeProps, Position } from "reactflow";
 import { TableNodeData } from "@/types/schema-types";
-import { BaseNode } from "@/components/base-node"; 
-import { LabeledHandle } from "@/components/labeled-handle"; 
+import { BaseNode } from "@/components/base-node";
+import { LabeledHandle } from "@/components/labeled-handle";
 
-const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data, selected }) => {
+const TableNode: React.FC<NodeProps<TableNodeData>> = ({
+  id,
+  data,
+  selected,
+}) => {
   return (
     <BaseNode className="p-0" selected={selected}>
       <h2 className="rounded-tl-md rounded-tr-md bg-secondary p-2 text-center text-sm text-muted-foreground">
@@ -35,8 +39,6 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data, selected }) => {
                   type="source"
                   position={Position.Right}
                   className="p-0"
-                  handleClassName="p-0"
-                  labelClassName="p-0"
                 />
                 {column.primaryKey && (
                   <span className="text-blue-600 ml-2">PK</span>
