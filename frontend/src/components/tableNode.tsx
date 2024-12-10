@@ -1,41 +1,57 @@
-import React, { memo } from "react";
-import { NodeProps } from "reactflow";
+import React from "react";
+import { NodeProps, Position } from "reactflow";
 import { TableNodeData } from "@/types/schema-types";
+import { BaseNode } from "@/components/base-node"; 
+import { LabeledHandle } from "@/components/labeled-handle"; 
 
-const TableNode = memo(({ data }: NodeProps<TableNodeData>) => {
+const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data, selected }) => {
   return (
-    <div className="bg-white border-2 border-blue-500 rounded-md shadow-lg w-64 overflow-hidden">
-      <div className="bg-blue-500 text-white p-2 font-bold text-center">
+    <BaseNode className="p-0" selected={selected}>
+      <h2 className="rounded-tl-md rounded-tr-md bg-secondary p-2 text-center text-sm text-muted-foreground">
         {data.label}
-      </div>
-      <div className="p-2">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left">Column</th>
-              <th className="text-left">Type</th>
-              <th className="text-center">Constraints</th>
+      </h2>
+      <table className="w-full border-spacing-10 overflow-visible">
+        <tbody>
+          {data.columns.map((column) => (
+            <tr key={column.name} className="relative text-xs">
+              <td className="pl-0 pr-6 font-light">
+                <LabeledHandle
+                  id={column.name}
+                  title={column.name}
+                  type="target"
+                  position={Position.Left}
+                />
+                {column.name}
+              </td>
+
+              <td className="px-2 text-right font-thin text-muted-foreground">
+                {column.type}
+              </td>
+
+              <td className="pr-0 text-right">
+                <LabeledHandle
+                  id={column.name}
+                  title={column.name}
+                  type="source"
+                  position={Position.Right}
+                  className="p-0"
+                  handleClassName="p-0"
+                  labelClassName="p-0"
+                />
+                {column.primaryKey && (
+                  <span className="text-blue-600 ml-2">PK</span>
+                )}
+                {column.unique && (
+                  <span className="text-purple-600 ml-2">U</span>
+                )}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {data.columns.map((column, index) => (
-              <tr key={index} className="border-b last:border-b-0">
-                <td>{column.name}</td>
-                <td>{column.type}</td>
-                <td className="text-center">
-                  {column.primaryKey && (
-                    <span className="text-blue-600">PK</span>
-                  )}
-                  {column.unique && <span className="text-purple-600">U</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          ))}
+        </tbody>
+      </table>
+    </BaseNode>
   );
-});
+};
 
 TableNode.displayName = "TableNode";
 
