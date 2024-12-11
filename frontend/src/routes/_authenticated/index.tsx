@@ -75,11 +75,16 @@ function Index() {
       })),
       edges: edges.map((edge) => ({
         id: edge.id,
+        type: edge.type,
         source: edge.source,
         target: edge.target,
+        sourceHandle: edge.sourceHandle,
+        targetHandle: edge.targetHandle,
+        data: edge.data || {},
       })),
     };
 
+    console.log(nodes, edges, dataToSave);
     try {
       const response = await fetch("/api/saveSchema", {
         method: "POST",
