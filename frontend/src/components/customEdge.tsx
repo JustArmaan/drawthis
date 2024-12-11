@@ -5,20 +5,11 @@ import {
   useReactFlow,
 } from "reactflow";
 import { useState } from "react";
+import { EdgeProps } from "reactflow";
 
-export default function CustomEdge({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-}: {
-  id: string;
-  sourceX: number;
-  sourceY: number;
-  targetX: number;
-  targetY: number;
-}) {
+export default function CustomEdge(props: EdgeProps) {
+  const { id, sourceX, sourceY, targetX, targetY, data } = props;
+
   const { setEdges } = useReactFlow();
   const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
@@ -28,7 +19,7 @@ export default function CustomEdge({
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [labelText, setLabelText] = useState("Click to edit");
+  const [labelText, setLabelText] = useState(data?.label || "Click to edit");
 
   const handleLabelClick = () => {
     setIsEditing(true);

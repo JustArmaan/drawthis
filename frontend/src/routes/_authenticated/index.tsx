@@ -41,15 +41,15 @@ function Index() {
     (connection: Connection) => {
       const newEdge: Edge = {
         id: `edge-${uuidv4()}`,
-        type: selectedEdgeType,
+        type: "custom",
         source: connection.source || "",
         target: connection.target || "",
-        sourceHandle: connection.sourceHandle ?? null,
-        targetHandle: connection.targetHandle ?? null,
+        sourceHandle: connection.sourceHandle,
+        targetHandle: connection.targetHandle,
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges, selectedEdgeType]
+    [setEdges]
   );
 
   const handleAddTable = (tableData: TableNodeData) => {
@@ -129,6 +129,7 @@ function Index() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            snapToGrid={true}
             fitView
           >
             <Controls />
